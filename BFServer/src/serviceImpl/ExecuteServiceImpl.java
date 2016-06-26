@@ -1,7 +1,6 @@
 //请不要修改本文件名
 package serviceImpl;
 
-import java.rmi.RemoteException;
 import service.ExecuteService;
 
 public class ExecuteServiceImpl implements ExecuteService {
@@ -25,8 +24,11 @@ public class ExecuteServiceImpl implements ExecuteService {
 			  c+=cell[index];
 			  break;
 			  case ',':
+				  if((j+1)<param.length()){
 				cell[index]=param.charAt(j);
 				j=j+1;
+				  }
+				  else cell[index]=param.charAt(j);
 				break;
 			  case '[':
 				  int index1=1;//[]的指针
@@ -71,10 +73,14 @@ public class ExecuteServiceImpl implements ExecuteService {
 			}
 			 i++;
 			}while(i<codes.length);
-		return c.substring(1);
+			if(param.equals("")){
+		    return c.substring(1);
+			}
+			else return c.substring(c.length()-1);
 	}
-public static void main(String []args) throws RemoteException{
-	ExecuteServiceImpl esi=new ExecuteServiceImpl();
-	System.out.println(esi.execute("++++++++++[>+++++++>++++++++++>+++>+<<<<-] >++.>+.+++++++..+++.>++.<<+++++++++++++++. >.+++.------.--------.>+.>.",""));
 }
-}
+//public static void main(String []args) throws RemoteException{
+//	ExecuteServiceImpl esi=new ExecuteServiceImpl();
+//	System.out.println(esi.execute(",>++++++[<-------->-],,[<+>-],<.>. ","4+3"));
+//}
+//}

@@ -1,6 +1,7 @@
 package ui;
 
 import java.io.File;
+import java.rmi.RemoteException;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -18,12 +19,15 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import runner.ClientRunner;
 
 public class NewFileUI extends Stage {
 	GridPane grid=new GridPane();
 	Scene scene;
-	public  NewFileUI() {
+	MainUI mainUI;
+	public  NewFileUI(MainUI mainUI) {
 		super();
+		this.mainUI=mainUI;
 		layout();
 		this.setScene(scene);
 	}
@@ -42,7 +46,6 @@ public class NewFileUI extends Stage {
 	       //创建文本输入框，放到第1列，第1行
 	       TextField textField = new TextField();
 	       textField.setPromptText("Enter your file name");
-	       String newFileName= textField.getText();//用户输入的文件名
 	       grid.add(textField, 1, 1);
 	       //OK
 			Button button=new Button("OK");
@@ -51,12 +54,17 @@ public class NewFileUI extends Stage {
 			scene= new Scene(grid,400, 260);
 			// OKbutton事件,创建 用户名\\文件名 文件夹
 			button.setOnAction(new EventHandler<ActionEvent>() {
-				
 				@Override
 				public void handle(ActionEvent event) {
-					MainUI main=new MainUI(new BorderPane(), 1000, 720);
-					String userName=main.account;
-					File file =new File("D:\\软工大作业\\"+newFileName+"\\"+userName);
+					String newFileName= textField.getText();//用户输入的文件名
+					String userName=mainUI.account;
+					mainUI.getNewFileName(newFileName);
+					try {
+						ClientRunner.remoteHelper.getUserService().creatFile(userName, newFileName);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					NewFileUI.this.close();
 				}
 			});

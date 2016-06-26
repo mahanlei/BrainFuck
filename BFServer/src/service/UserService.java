@@ -9,5 +9,6 @@ public interface UserService extends Remote{
 
 	public boolean logout(String username) throws RemoteException;
 	
-	public void register(String newUserName,String passWord) throws RemoteException;
+	public boolean register(String newUserName,String passWord) throws RemoteException;
+	public boolean creatFile(String userName,String fileName)throws RemoteException;
 }

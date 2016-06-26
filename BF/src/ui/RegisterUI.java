@@ -49,7 +49,6 @@ public class RegisterUI extends Stage{
 		  //创建文本输入框，放到第1列，第0行
 		TextField userTextField=new TextField();
 		userTextField.setPromptText("Enter new name");
-		String newUserName=userTextField.getText();//新注册用户的名字
 		grid.add(userTextField, 1, 1);
 		  //创建passWord Label对象，放到第0列，第1行
 		Label passWord=new Label("PassWord:");
@@ -58,7 +57,6 @@ public class RegisterUI extends Stage{
 		  //创建文本框，放到第1列，第1行
 		TextField passWordField=new TextField();
 		passWordField.setPromptText("Enter your passWord");
-		String newPassWord=passWordField.getText();//新用户的密码
 		grid.add(passWordField, 1,2);
 		
 		Button button=new Button("OK");
@@ -69,9 +67,9 @@ public class RegisterUI extends Stage{
 			@Override
 			public void handle(ActionEvent event) {
 				try {
-					ClientRunner.remoteHelper.getUserService().register(newUserName, newPassWord);
-					File file=new File("D:\\软工大作业\\"+newUserName);
-					file.mkdirs();
+					String newUserName=userTextField.getText();//新注册用户的名字
+					String newPassWord=passWordField.getText();//新用户的密码
+				    ClientRunner.remoteHelper.getUserService().register(newUserName, newPassWord);
 					RegisterUI.this.close();
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block

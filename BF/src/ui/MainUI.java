@@ -5,9 +5,10 @@ import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.sun.xml.internal.messaging.saaj.soap.impl.TreeException;
-
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Parent;
@@ -18,7 +19,10 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -27,21 +31,66 @@ public class MainUI extends Scene{
 	String account="";
 	String newFileName="";
     BorderPane bp=new BorderPane();
+    Label uLabel;
     File openedFile;
+    TreeView<String>treeView=new TreeView<String>();
+    TreeItem<String> rootItem=new TreeItem<String>();
+    String cString;
+    TextArea bfCode;
 	public MainUI(Parent root, double width, double height) {
 		super(root, width, height);
 		this.layout();
 		this.setRoot(bp);
-	}
 	
+	}
 	//获得用户名
     public void getAccount(String userName) {
 	  this.account=userName;
-	}
+	  uLabel.setText(account);
+	  rootItem=new TreeItem<>(account);
+	  File[] fileNames=null;
+   	try {
+   		fileNames = ClientRunner.remoteHelper.getIOService().readList(account);
+   		rootItem.setExpanded(true);
+   		for(int i=0;i<fileNames.length;i++){
+   			TreeItem<String> files=new TreeItem<String>(fileNames[i].getName());
+   			File[]history = ClientRunner.remoteHelper.getIOService().readList(account+"\\"+fileNames[i].getName());
+   			if (history!=null) {
+				for (int j = 0; j < history.length; j++) {
+					TreeItem<String> hItem = new TreeItem<String>(history[j].getName());
+					files.getChildren().add(hItem);
+				} 
+			}
+			rootItem.getChildren().add(files);
+   		}
+   	} catch (RemoteException e) {
+   		// TODO Auto-generated catch block
+   		e.printStackTrace();
+   	}
+   	treeView.setRoot(rootItem);
+   	treeView.getFocusModel().focusedItemProperty().addListener(new ChangeListener<TreeItem>() {
+          @Override
+		public void changed(ObservableValue<? extends TreeItem> observable, TreeItem oldValue,
+				TreeItem newValue) {
+           try {
+		     cString=ClientRunner.remoteHelper.getIOService().readFile(observable.getValue().getParent().getParent().getValue()+"\\"+observable.getValue().getParent().getValue()+"\\"+observable.getValue().getValue());
+		     System.out.println(cString);
+           } catch (RemoteException e) {
+		      // TODO Auto-generated catch block
+		      e.printStackTrace();
+	         }
+           bfCode.setText(cString);
+		}
+   		 
+	});
+	  }
+	
 	//获得新文件名
     public void getNewFileName(String fileName) {
     	this.newFileName=fileName;
+    	
 	}
+   
 	private void layout(){
         //菜单栏
         MenuBar mBar=new MenuBar();
@@ -50,8 +99,8 @@ public class MainUI extends Scene{
          MenuItem itemNew=new MenuItem("New");
          MenuItem itemSave=new MenuItem("Save");
          MenuItem itemExit=new MenuItem("Exit");
-         MenuItem itemOpen=new MenuItem("Open");
-         menuFile.getItems().addAll(itemNew,itemOpen,itemSave,itemExit);
+       //  MenuItem itemOpen=new MenuItem("Open");
+         menuFile.getItems().addAll(itemNew,itemSave,itemExit);
         //Edit下的菜单项
         Menu menuEdit=new Menu("Edit");
          MenuItem itemUndo=new MenuItem("Undo");
@@ -67,7 +116,7 @@ public class MainUI extends Scene{
        // Menu menuFileName=new Menu("FileName");
         //用户登录，登出口
         Menu menuUser=new Menu("Account");
-        Label uLabel=new Label(account);
+        uLabel=new Label();
         uLabel.setFont(new Font("Aparajita Bold", 19));
         menuUser.setGraphic(uLabel);
          MenuItem itemLogin=new MenuItem("Login");
@@ -75,11 +124,14 @@ public class MainUI extends Scene{
          menuUser.getItems().addAll(itemLogin,itemLogout);
          mBar.getMenus().addAll(menuFile,menuEdit,menuRun,menuUser);
          bp.setTop(mBar);
-        //代码区
-        TextArea bfCode=new TextArea();
-        bfCode.setPrefSize(760,150);
-        bp.setCenter(bfCode);
-        String codes=bfCode.getText();//获得当前代码区代码
+     //树视图区
+          bp.setLeft(treeView);
+          
+      //代码区
+         bfCode=new TextArea();
+         bfCode.setText(cString);
+         bfCode.setPrefSize(750,150);
+         bp.setRight(bfCode);
           //滚动条
             ScrollBar sBar=new ScrollBar();
             sBar.setMin(0);
@@ -89,57 +141,59 @@ public class MainUI extends Scene{
         HBox hb=new HBox();
         TextArea input=new TextArea();
        input.setPromptText("Enter integers");
-       input.setPrefSize(280, 190);
+       input.setPrefSize(480, 190);
        //输出区域
        TextArea output=new TextArea();
-       output.setPrefSize(480, 190);
+       output.setPrefSize(490, 190);
         hb.getChildren().addAll(input,output);
         hb.setSpacing(40);
         bp.setBottom(hb);
       
- 
         //New 事件
         itemNew.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
                  try {
-					new NewFileUI().show();;
+					new NewFileUI(MainUI.this).show();;
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		});
-        //open事件
-        itemOpen.setOnAction(new EventHandler<ActionEvent>() {
-
-			@Override
-			public void handle(ActionEvent event) {
-                 new TreeUI().show();			
-			}
-		});
-        //save事件
-        itemSave.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-			    String proCodes="";
-				try {
-					proCodes = ClientRunner.remoteHelper.getIOService().readFile(openedFile.getPath());
+      //save事件
+      itemSave.setOnAction(new EventHandler<ActionEvent>() {
+	@Override
+		public void handle(ActionEvent event) {
+			String codes=bfCode.getText();//获得当前代码区代码
+		    String proCodes="";
+			try {
+				if (openedFile!=null) {
+				 proCodes = ClientRunner.remoteHelper.getIOService().readFile(openedFile.getPath());
+				 if(!codes.equals(proCodes)){
+					SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
+					String time=df.format(new Date());// new Date()为获取当前系统时间
+					try {
+					ClientRunner.remoteHelper.getIOService().writeFile(	account+"\\"+newFileName+"\\"+time, codes);
+					} catch (RemoteException e) {
+					  e.printStackTrace();
+					  }
+				 }
+				}
+				else{
+					SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
+					String time=df.format(new Date());// new Date()为获取当前系统时间
+					try {
+					ClientRunner.remoteHelper.getIOService().writeFile(	account+"\\"+newFileName+"\\"+time, codes);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+				        e.printStackTrace();
+					  }
+					}
 				} catch (RemoteException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			    if(!codes.equals(proCodes)){
-			    	SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
-			        String time=df.format(new Date());// new Date()为获取当前系统时间
-			        File newVersion=new File("D:\\软工大作业\\"+account+"\\"+newFileName+"\\"+time);
-			       try {
-					ClientRunner.remoteHelper.getIOService().writeFile(newVersion.getPath(), codes);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			    }
 			}
 		});
         //Login 事件
@@ -147,8 +201,7 @@ public class MainUI extends Scene{
         	@Override
         	public void handle(ActionEvent event) {
         		try {
-        			new LoginUI().show();
-        			
+        			new LoginUI(MainUI.this).show();
         		} catch (Exception e) {
         			e.printStackTrace();
         		}
@@ -159,7 +212,7 @@ public class MainUI extends Scene{
         	@Override
         	public void handle(ActionEvent event) {
         		try {
-        			new LoginUI().show();;
+        			new LoginUI(MainUI.this).show();;
         		} catch (Exception e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();

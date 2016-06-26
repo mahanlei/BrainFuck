@@ -24,8 +24,10 @@ import runner.ClientRunner;;
 public  class LoginUI extends Stage {
 	GridPane grid=new GridPane();
 	Scene scene;
-	public LoginUI() {
+	MainUI mainUI;
+	public LoginUI(MainUI mainUI) {
 		super();
+		this.mainUI=mainUI;
 		layout();
 		this.setScene(scene);
 	}
@@ -45,7 +47,6 @@ public  class LoginUI extends Stage {
 	       //创建文本输入框，放到第1列，第1行
 	       TextField userTextField = new TextField();
 	       userTextField.setPromptText("Enter your account");
-	       String inID= userTextField.getText();//用户输入的ID
 	       grid.add(userTextField, 1, 1);
 	       
            //创建passWord Label对象，放在第0列，第2行
@@ -56,7 +57,6 @@ public  class LoginUI extends Stage {
            //创建passWordField
 	      PasswordField pwBox=new PasswordField();
 	       pwBox.setPromptText("Enter your passWord");
-	       String inpassWord=pwBox.getText();//用户输入的密码
 	       grid.add(pwBox,1,2);
 	       
 	       //register 按钮
@@ -81,9 +81,12 @@ public  class LoginUI extends Stage {
 	       //login按钮
 	       btn1.setOnAction(new EventHandler<ActionEvent>() {//注册事件handler
 	           public void handle(ActionEvent e) {
+	        	   String inID= userTextField.getText();//用户输入的ID
+	        	   String inpassWord=pwBox.getText();//用户输入的密码
 					boolean[] isin;
 					try {
 						isin = ClientRunner.remoteHelper.getUserService().login(inID, inpassWord);
+						//System.out.println("sd");
 						if(isin[0]==false){
 							actiontarget.setFill(Color.FIREBRICK);//将文字颜色变成 red
 							actiontarget.setText("This account does not exit!");
@@ -94,9 +97,8 @@ public  class LoginUI extends Stage {
 						}
 						if(isin[0]==true&&isin[1]==true){
 							try {
-								MainUI mFrame=new MainUI(new BorderPane(), 1000, 720);//新的main
-								mFrame.getAccount(inID);
 								LoginUI.this.close();
+								mainUI.getAccount(inID);
 							} catch (Exception e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
@@ -109,14 +111,15 @@ public  class LoginUI extends Stage {
 			
 	           }
 	        });
+	       //register按钮
 	       btn2.setOnAction(new EventHandler<ActionEvent>() {
 			
 			@Override
 			public void handle(ActionEvent event) {
 				try {
 					LoginUI.this.close();
-				RegisterUI registerUI=new RegisterUI();
-				registerUI.show();
+				    RegisterUI registerUI=new RegisterUI();
+				    registerUI.show();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
