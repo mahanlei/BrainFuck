@@ -127,8 +127,7 @@ public class MainUI extends Scene{
         Menu menuEdit=new Menu("Edit");
          MenuItem itemUndo=new MenuItem("Undo");
          MenuItem itemRedo=new MenuItem("Redo");
-         MenuItem itemClear=new MenuItem("Clear");
-         menuEdit.getItems().addAll(itemUndo,itemRedo,itemClear);
+         menuEdit.getItems().addAll(itemUndo,itemRedo);
        //Run菜单项
         Menu menuRun=new Menu("Run");
         MenuItem runMenuItem=new MenuItem("run");
