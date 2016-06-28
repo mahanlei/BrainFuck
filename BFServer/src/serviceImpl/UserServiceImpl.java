@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService{
     public boolean register(String newUserName,String newPassWord){
     	try {
 			FileWriter fWriter=new FileWriter(userList,true);
-			fWriter.write(newUserName+" "+newPassWord);
+			fWriter.write(newUserName+" "+newPassWord+"\n");
 			fWriter.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

@@ -28,69 +28,85 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import runner.ClientRunner;
 public class MainUI extends Scene{
-	String account="";
-	String newFileName="";
-    BorderPane bp=new BorderPane();
+	String account="";//当前登录的用户名
+	String newFileName="";//new的新文件名
+	BorderPane bp=new BorderPane();
     Label uLabel;
-    File openedFile;
+    String openedFilePath;//正打开的文件路径
     TreeView<String>treeView=new TreeView<String>();
     TreeItem<String> rootItem=new TreeItem<String>();
-    String cString;
+    String cString;//打开历史记录的代码
     TextArea bfCode;
+    TextArea input;
+    TextArea output;
 	public MainUI(Parent root, double width, double height) {
 		super(root, width, height);
 		this.layout();
 		this.setRoot(bp);
-	
 	}
 	//获得用户名
     public void getAccount(String userName) {
 	  this.account=userName;
 	  uLabel.setText(account);
 	  rootItem=new TreeItem<>(account);
-	  File[] fileNames=null;
-   	try {
-   		fileNames = ClientRunner.remoteHelper.getIOService().readList(account);
-   		rootItem.setExpanded(true);
-   		for(int i=0;i<fileNames.length;i++){
-   			TreeItem<String> files=new TreeItem<String>(fileNames[i].getName());
-   			File[]history = ClientRunner.remoteHelper.getIOService().readList(account+"\\"+fileNames[i].getName());
-   			if (history!=null) {
-				for (int j = 0; j < history.length; j++) {
-					TreeItem<String> hItem = new TreeItem<String>(history[j].getName());
-					files.getChildren().add(hItem);
-				} 
-			}
-			rootItem.getChildren().add(files);
-   		}
-   	} catch (RemoteException e) {
-   		// TODO Auto-generated catch block
-   		e.printStackTrace();
-   	}
-   	treeView.setRoot(rootItem);
-   	treeView.getFocusModel().focusedItemProperty().addListener(new ChangeListener<TreeItem>() {
-          @Override
-		public void changed(ObservableValue<? extends TreeItem> observable, TreeItem oldValue,
-				TreeItem newValue) {
-           try {
-		     cString=ClientRunner.remoteHelper.getIOService().readFile(observable.getValue().getParent().getParent().getValue()+"\\"+observable.getValue().getParent().getValue()+"\\"+observable.getValue().getValue());
-		     System.out.println(cString);
-           } catch (RemoteException e) {
-		      // TODO Auto-generated catch block
-		      e.printStackTrace();
-	         }
-           bfCode.setText(cString);
-		}
-   		 
-	});
+	  creatTree();
+	 
 	  }
-	
+	//创造树视图
+	public void creatTree() {
+		// TODO Auto-generated method stub
+		 File[] fileNames=null;
+		 rootItem=new TreeItem<String>(account);
+		   	try {
+		   		fileNames = ClientRunner.remoteHelper.getIOService().readList(account);
+		   		rootItem.setExpanded(true);
+		   		for(int i=0;i<fileNames.length;i++){
+		   			TreeItem<String> files=new TreeItem<String>(fileNames[i].getName());
+		   			File[]history = ClientRunner.remoteHelper.getIOService().readList(account+"\\"+fileNames[i].getName());
+		   			if (history!=null) {
+						for (int j = 0; j < history.length; j++) {
+							TreeItem<String> hItem = new TreeItem<String>(history[j].getName());
+							files.getChildren().add(hItem);
+						} 
+					}
+					rootItem.getChildren().add(files);
+		   		}
+		   	} catch (RemoteException e) {
+		   		// TODO Auto-generated catch block
+		   		e.printStackTrace();
+		   	}
+		   	treeView.setRoot(rootItem);
+		   	treeView.getFocusModel().focusedItemProperty().addListener(new ChangeListener<TreeItem>() {
+		          @Override
+				public void changed(ObservableValue<? extends TreeItem> observable, TreeItem oldValue,
+						TreeItem newValue) {
+		        	  if (observable.getValue()!=null&&observable.getValue().getParent() !=null) {
+						if (observable.getValue().getParent().getValue() != account) {
+							try {
+								cString = ClientRunner.remoteHelper.getIOService()
+										.readFile(observable.getValue().getParent().getParent().getValue() + "\\"
+												+ observable.getValue().getParent().getValue() + "\\"
+												+ observable.getValue().getValue());
+							} catch (RemoteException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							openedFilePath = observable.getValue().getParent().getParent().getValue() + "\\"
+									+ observable.getValue().getParent().getValue() + "\\"
+									+ observable.getValue().getValue();
+						} else {
+							openedFilePath = observable.getValue().getParent().getValue() + "\\"
+									+ observable.getValue().getValue()+"\\" ;
+						}
+						bfCode.setText(cString);
+					}
+				}
+			});
+	}
 	//获得新文件名
     public void getNewFileName(String fileName) {
     	this.newFileName=fileName;
-    	
 	}
-   
 	private void layout(){
         //菜单栏
         MenuBar mBar=new MenuBar();
@@ -112,6 +128,8 @@ public class MainUI extends Scene{
          menuEdit.getItems().addAll(itemUndo,itemRedo,itemClear);
          //Run菜单项
         Menu menuRun=new Menu("Run");
+        MenuItem runMenuItem=new MenuItem("run");
+        menuRun.getItems().add(runMenuItem);
         //历史记录
        // Menu menuFileName=new Menu("FileName");
         //用户登录，登出口
@@ -139,11 +157,11 @@ public class MainUI extends Scene{
             sBar.setMax(150);
         //输入区域
         HBox hb=new HBox();
-        TextArea input=new TextArea();
+         input=new TextArea();
        input.setPromptText("Enter integers");
        input.setPrefSize(480, 190);
        //输出区域
-       TextArea output=new TextArea();
+       output=new TextArea();
        output.setPrefSize(490, 190);
         hb.getChildren().addAll(input,output);
         hb.setSpacing(40);
@@ -165,37 +183,39 @@ public class MainUI extends Scene{
       itemSave.setOnAction(new EventHandler<ActionEvent>() {
 	@Override
 		public void handle(ActionEvent event) {
+		
 			String codes=bfCode.getText();//获得当前代码区代码
 		    String proCodes="";
-			try {
-				if (openedFile!=null) {
-				 proCodes = ClientRunner.remoteHelper.getIOService().readFile(openedFile.getPath());
-				 if(!codes.equals(proCodes)){
+		    if(openedFilePath.endsWith("\\")){
+		    	SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
+				String time=df.format(new Date());// new Date()为获取当前系统时间
+				try {
+				ClientRunner.remoteHelper.getIOService().writeFile(openedFilePath+time, codes);
+				creatTree();
+				} catch (RemoteException e) {
+				  e.printStackTrace();
+				  }
+		    }
+		    else{ 
+		    	try {
+					proCodes = ClientRunner.remoteHelper.getIOService().readFile(openedFilePath);
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
+				 if(codes!=proCodes){
 					SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
 					String time=df.format(new Date());// new Date()为获取当前系统时间
 					try {
-					ClientRunner.remoteHelper.getIOService().writeFile(	account+"\\"+newFileName+"\\"+time, codes);
+					ClientRunner.remoteHelper.getIOService().writeFile(openedFilePath.substring(0,openedFilePath.lastIndexOf("\\"))+"\\"+time, codes);
+					creatTree();
 					} catch (RemoteException e) {
 					  e.printStackTrace();
 					  }
 				 }
-				}
-				else{
-					SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmm");//设置日期格式
-					String time=df.format(new Date());// new Date()为获取当前系统时间
-					try {
-					ClientRunner.remoteHelper.getIOService().writeFile(	account+"\\"+newFileName+"\\"+time, codes);
-					} catch (RemoteException e) {
-						// TODO Auto-generated catch block
-				        e.printStackTrace();
-					  }
-					}
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+	         }
+	      }
 		});
+      
         //Login 事件
         itemLogin.setOnAction(new EventHandler<ActionEvent>() {
         	@Override
@@ -226,6 +246,21 @@ public class MainUI extends Scene{
         		ClientRunner.primaryStage.close();
         	}
         });
-         
+        //Run事件
+         runMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				// TODO Auto-generated method stub
+				try {
+					output.setText(ClientRunner.remoteHelper.getExecuteService().execute(bfCode.getText(), input.getText()));
+					System.out.println(ClientRunner.remoteHelper.getExecuteService().execute(bfCode.getText(), input.getText()));
+					
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 } 

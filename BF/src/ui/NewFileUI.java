@@ -61,6 +61,7 @@ public class NewFileUI extends Stage {
 					mainUI.getNewFileName(newFileName);
 					try {
 						ClientRunner.remoteHelper.getUserService().creatFile(userName, newFileName);
+						mainUI.creatTree();
 					} catch (RemoteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

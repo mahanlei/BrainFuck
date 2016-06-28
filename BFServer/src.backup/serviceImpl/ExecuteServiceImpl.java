@@ -17,7 +17,7 @@ public class ExecuteServiceImpl implements ExecuteService {
 		int index=0;//单元指针
 		int i=0;//代码指针
 		int j=0;//参数指针
-		String  c="0";//输出的内�?
+		String  c="";//输出的内�?
 			do{
 			 switch(codes[i]){
 			  case '.':
@@ -73,14 +73,11 @@ public class ExecuteServiceImpl implements ExecuteService {
 			}
 			 i++;
 			}while(i<codes.length);
-			if(param.equals("")){
-		    return c.substring(1);
-			}
-			else return c.substring(c.length()-1);
+			 return c;
 	}
+
+public static void main(String []args){
+	ExecuteServiceImpl esi=new ExecuteServiceImpl();
+	System.out.println(esi.execute(",>++++++[<-------->-],,[<+>-],<.>.","3+4\n"));
 }
-//public static void main(String []args) throws RemoteException{
-//	ExecuteServiceImpl esi=new ExecuteServiceImpl();
-//	System.out.println(esi.execute(",>++++++[<-------->-],,[<+>-],<.>. ","4+3"));
-//}
-//}
+}

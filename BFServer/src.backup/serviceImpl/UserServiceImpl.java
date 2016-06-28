@@ -1,21 +1,45 @@
 package serviceImpl;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 import service.UserService;
 
 public class UserServiceImpl implements UserService{
-    File user=new File("usersList");
+    File userList=new File("usersList.txt");
     
 	@Override
 	public boolean[] login(String username, String password) throws RemoteException {
 		boolean[]result=new boolean[2];
-		for(int i=0;i<username.length();i++){
-			if(username.equals(userNameList.get(i))){
+		FileReader fileReader;
+		String line=null;
+		try {
+			fileReader = new FileReader(userList);
+			BufferedReader bufferedReader=new BufferedReader(fileReader);
+			try {
+				line=bufferedReader.readLine();
+				fileReader.close();
+				bufferedReader.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		while(line!=null){
+			String[]lines=line.split(" ");
+			if(username.equals(lines[0])){
 				result[0]=true;
-				if(password.equals(passWordList.get(i))){
+				if(password.equals(lines[1])){
 					result[1]=true;
 					break;
 				}
@@ -26,26 +50,32 @@ public class UserServiceImpl implements UserService{
 			}
 			else {
 				result[0]=false;
-			    continue;
-			}
+				continue;
 		}
+			}
 		return result;
 	}
-
 	@Override
 	public boolean logout(String username) throws RemoteException {
 		return true;
 	}
     public boolean register(String newUserName,String newPassWord){
-    	userNameList.add(newUserName);
-        passWordList.add(newPassWord);
-        System.out.println(userNameList.size());
+    	try {
+			FileWriter fWriter=new FileWriter(userList,true);
+			fWriter.write(newUserName+" "+newPassWord+"\n");
+			fWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         File newfile=new File(newUserName);
-//        newfile.exists();
         newfile.mkdir();
-        System.out.println(newfile.exists());
-        System.out.println(newfile.getAbsolutePath());
-        
         return true;
     }
-}
+
+   public boolean creatFile(String userName,String fileName){
+	   File f=new File(userName+"\\"+fileName);
+	   f.mkdir();
+	   return true;
+   }
+   }

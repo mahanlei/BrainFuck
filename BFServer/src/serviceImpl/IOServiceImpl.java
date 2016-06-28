@@ -31,12 +31,12 @@ public class IOServiceImpl implements IOService{
 	public String readFile(String fileAddress) {
 		File file=new File(fileAddress);
 		String proCodes="";
+		String line=null;
 		try {
 			BufferedReader bReader=new BufferedReader(new FileReader(file));
-			String line=null;
 			try {
 				while(( line=bReader.readLine())!=null){
-						proCodes+=bReader.readLine();
+					proCodes+=line+"\n";
 				}
 				bReader.close();
 			} catch (IOException e) {
@@ -47,7 +47,9 @@ public class IOServiceImpl implements IOService{
 			e1.printStackTrace();
 		}
 		return proCodes;
-	}
+		}
+
+	
 
 	@Override
 	  public File[] readList(String userName){
