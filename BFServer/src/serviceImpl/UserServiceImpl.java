@@ -2,19 +2,19 @@ package serviceImpl;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
+import java.util.Stack;
+
+import com.sun.org.apache.xml.internal.resolver.helpers.PublicId;
 
 import service.UserService;
 
 public class UserServiceImpl implements UserService{
     File userList=new File("usersList.txt");
-    
 	@Override
 	public boolean[] login(String username, String password) throws RemoteException {
 		boolean[]result=new boolean[2];
@@ -73,9 +73,11 @@ public class UserServiceImpl implements UserService{
         return true;
     }
 
-   public boolean creatFile(String userName,String fileName){
+    public boolean creatFile(String userName,String fileName){
 	   File f=new File(userName+"\\"+fileName);
 	   f.mkdir();
 	   return true;
    }
-   }
+   
+    
+}

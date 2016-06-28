@@ -3,7 +3,10 @@ package ui;
 import java.io.File;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+
+import com.sun.org.apache.regexp.internal.recompile;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -11,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -21,6 +25,8 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -39,7 +45,10 @@ public class MainUI extends Scene{
     TextArea bfCode;
     TextArea input;
     TextArea output;
-	public MainUI(Parent root, double width, double height) {
+   				
+    private  Node rootIcon = new ImageView(new Image( new File("image\\user.png") .toURI().toString(),16,16,true,true,true));
+    private  Node FileIcon ;
+    public MainUI(Parent root, double width, double height) {
 		super(root, width, height);
 		this.layout();
 		this.setRoot(bp);
@@ -51,88 +60,80 @@ public class MainUI extends Scene{
 	  rootItem=new TreeItem<>(account);
 	  creatTree();
 	 
-	  }
+	}
 	//创造树视图
 	public void creatTree() {
 		// TODO Auto-generated method stub
 		 File[] fileNames=null;
-		 rootItem=new TreeItem<String>(account);
-		   	try {
-		   		fileNames = ClientRunner.remoteHelper.getIOService().readList(account);
-		   		rootItem.setExpanded(true);
-		   		for(int i=0;i<fileNames.length;i++){
-		   			TreeItem<String> files=new TreeItem<String>(fileNames[i].getName());
-		   			File[]history = ClientRunner.remoteHelper.getIOService().readList(account+"\\"+fileNames[i].getName());
-		   			if (history!=null) {
-						for (int j = 0; j < history.length; j++) {
-							TreeItem<String> hItem = new TreeItem<String>(history[j].getName());
-							files.getChildren().add(hItem);
-						} 
-					}
-					rootItem.getChildren().add(files);
-		   		}
-		   	} catch (RemoteException e) {
+		 rootItem=new TreeItem<String>(account,rootIcon);
+		 try {
+		   fileNames = ClientRunner.remoteHelper.getIOService().readList(account);
+		   rootItem.setExpanded(true);
+		   for(int i=0;i<fileNames.length;i++){
+		     TreeItem<String> files=new TreeItem<String>(fileNames[i].getName(),FileIcon = new ImageView(new Image(new File ("image\\folder.png").toURI().toString(),16,16,true,true,true)));
+		   	  File[]history = ClientRunner.remoteHelper.getIOService().readList(account+"\\"+fileNames[i].getName());
+		   		if (history!=null) {
+					for (int j = 0; j < history.length; j++) {
+					  TreeItem<String> hItem = new TreeItem<String>(history[j].getName());
+					  files.getChildren().add(hItem);
+				    } 
+			    }
+				rootItem.getChildren().add(files);
+		   	}
+		  } catch (RemoteException e) {
 		   		// TODO Auto-generated catch block
 		   		e.printStackTrace();
 		   	}
-		   	treeView.setRoot(rootItem);
-		   	treeView.getFocusModel().focusedItemProperty().addListener(new ChangeListener<TreeItem>() {
-		          @Override
-				public void changed(ObservableValue<? extends TreeItem> observable, TreeItem oldValue,
-						TreeItem newValue) {
-		        	  if (observable.getValue()!=null&&observable.getValue().getParent() !=null) {
-						if (observable.getValue().getParent().getValue() != account) {
-							try {
-								cString = ClientRunner.remoteHelper.getIOService()
-										.readFile(observable.getValue().getParent().getParent().getValue() + "\\"
-												+ observable.getValue().getParent().getValue() + "\\"
-												+ observable.getValue().getValue());
+		  treeView.setRoot(rootItem);
+		  treeView.getFocusModel().focusedItemProperty().addListener(new ChangeListener<TreeItem>() {
+		      @Override
+		      public void changed(ObservableValue<? extends TreeItem> observable, TreeItem oldValue,TreeItem newValue) {
+		        if (observable.getValue()!=null&&observable.getValue().getParent() !=null) {
+					if (observable.getValue().getParent().getValue() != account) {
+						try {
+							cString = ClientRunner.remoteHelper.getIOService().readFile(observable.getValue().getParent().getParent().getValue() + "\\"
+									+ observable.getValue().getParent().getValue() + "\\"
+									+ observable.getValue().getValue());
 							} catch (RemoteException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							openedFilePath = observable.getValue().getParent().getParent().getValue() + "\\"
+						openedFilePath = observable.getValue().getParent().getParent().getValue() + "\\"
 									+ observable.getValue().getParent().getValue() + "\\"
 									+ observable.getValue().getValue();
-						} else {
-							openedFilePath = observable.getValue().getParent().getValue() + "\\"
+					} else {
+						openedFilePath = observable.getValue().getParent().getValue() + "\\"
 									+ observable.getValue().getValue()+"\\" ;
-						}
-						bfCode.setText(cString);
-					}
+					  }
+				   bfCode.setText(cString);
 				}
-			});
+			}
+		  });
 	}
 	//获得新文件名
     public void getNewFileName(String fileName) {
     	this.newFileName=fileName;
 	}
 	private void layout(){
-        //菜单栏
+       //菜单栏
         MenuBar mBar=new MenuBar();
-        //File下的菜单项
+       //File下的菜单项
         Menu menuFile = new Menu("File"); 
          MenuItem itemNew=new MenuItem("New");
          MenuItem itemSave=new MenuItem("Save");
          MenuItem itemExit=new MenuItem("Exit");
-       //  MenuItem itemOpen=new MenuItem("Open");
          menuFile.getItems().addAll(itemNew,itemSave,itemExit);
-        //Edit下的菜单项
+       //Edit下的菜单项
         Menu menuEdit=new Menu("Edit");
          MenuItem itemUndo=new MenuItem("Undo");
-         itemUndo.setAccelerator(KeyCombination.keyCombination("Ctrl+U"));//设置undo的快捷键
          MenuItem itemRedo=new MenuItem("Redo");
-         itemRedo.setAccelerator(KeyCombination.keyCombination("Ctrl+R"));//设置redo的快捷键
          MenuItem itemClear=new MenuItem("Clear");
-         itemClear.setAccelerator(KeyCombination.keyCombination("Ctrl+C"));//设置clear的快捷键
          menuEdit.getItems().addAll(itemUndo,itemRedo,itemClear);
-         //Run菜单项
+       //Run菜单项
         Menu menuRun=new Menu("Run");
         MenuItem runMenuItem=new MenuItem("run");
         menuRun.getItems().add(runMenuItem);
-        //历史记录
-       // Menu menuFileName=new Menu("FileName");
-        //用户登录，登出口
+       //用户登录，登出口
         Menu menuUser=new Menu("Account");
         uLabel=new Label();
         uLabel.setFont(new Font("Aparajita Bold", 19));
@@ -144,29 +145,38 @@ public class MainUI extends Scene{
          bp.setTop(mBar);
      //树视图区
           bp.setLeft(treeView);
-          
-      //代码区
+     //代码区
          bfCode=new TextArea();
          bfCode.setText(cString);
          bfCode.setPrefSize(750,150);
          bp.setRight(bfCode);
-          //滚动条
-            ScrollBar sBar=new ScrollBar();
-            sBar.setMin(0);
-            sBar.setOrientation(Orientation.VERTICAL);
-            sBar.setMax(150);
-        //输入区域
-        HBox hb=new HBox();
-         input=new TextArea();
+         
+         //代码区注册监听
+         RedoUndo ru=new RedoUndo(cString);
+         bfCode.textProperty().addListener(new ChangeListener<String>() {
+
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				ru.save(bfCode.getText());
+			}
+		});
+         
+         //滚动条
+           ScrollBar sBar=new ScrollBar();
+           sBar.setMin(0);
+           sBar.setOrientation(Orientation.VERTICAL);
+           sBar.setMax(150);
+      //输入区域
+       HBox hb=new HBox();
+       input=new TextArea();
        input.setPromptText("Enter integers");
        input.setPrefSize(480, 190);
        //输出区域
        output=new TextArea();
        output.setPrefSize(490, 190);
-        hb.getChildren().addAll(input,output);
-        hb.setSpacing(40);
-        bp.setBottom(hb);
-      
+       hb.getChildren().addAll(input,output);
+       hb.setSpacing(40);
+       bp.setBottom(hb);
         //New 事件
         itemNew.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -215,7 +225,24 @@ public class MainUI extends Scene{
 	         }
 	      }
 		});
-      
+      //undo事件
+      itemUndo.setOnAction(new EventHandler<ActionEvent>() {
+
+		@Override
+		public void handle(ActionEvent event) {
+			ru.codes.remove(ru.codes.size()-1);
+            bfCode.setText(ru.codes.get(ru.codes.size()-1));	
+		}
+	});
+      //redo事件
+      itemRedo.setOnAction(new EventHandler<ActionEvent>() {
+
+		@Override
+		public void handle(ActionEvent event) {
+			// TODO Auto-generated method stub
+			bfCode.setText(ru.codes.get(1));
+		}
+	});
         //Login 事件
         itemLogin.setOnAction(new EventHandler<ActionEvent>() {
         	@Override
