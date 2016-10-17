@@ -21,111 +21,113 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import runner.ClientRunner;;
 
-public  class LoginUI extends Stage {
-	GridPane grid=new GridPane();
+public class LoginUI extends Stage {
+	GridPane grid = new GridPane();
 	Scene scene;
 	MainUI mainUI;
+
 	public LoginUI(MainUI mainUI) {
 		super();
-		this.mainUI=mainUI;
+		this.mainUI = mainUI;
 		layout();
 		this.setScene(scene);
 	}
-	private void layout(){
+
+	private void layout() {
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(10);
 		grid.setVgap(10);
 		grid.setPadding(new Insets(25, 25, 25, 25));
-	       Text scenetitle = new Text("Welcome");
-	       scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL,35));                
-	       grid.add(scenetitle, 0, 0, 2, 1);
-	       //创建userName Label对象，放到第0列，第1行
-	       Label userName = new Label("User Name:");
-	       userName.setFont(new Font(20));
-	       grid.add(userName, 0, 1);
-	       
-	       //创建文本输入框，放到第1列，第1行
-	       TextField userTextField = new TextField();
-	       userTextField.setPromptText("Enter your account");
-	       grid.add(userTextField, 1, 1);
-	       
-           //创建passWord Label对象，放在第0列，第2行
-	       Label pw = new Label("Password:");
-	       pw.setFont(new Font(20));
-	       grid.add(pw, 0, 2);
-	       
-           //创建passWordField
-	      PasswordField pwBox=new PasswordField();
-	       pwBox.setPromptText("Enter your passWord");
-	       grid.add(pwBox,1,2);
-	       
-	       //register 按钮
-	       Button btn2=new Button("register");
-	       btn2.setFont(new Font(21));
-	       HBox hbBtn2 = new HBox();
-	       hbBtn2.setAlignment(Pos.BASELINE_LEFT);
-	       hbBtn2.getChildren().add(btn2);//将该按钮控件作为子节点
-	       //login 按钮
-	       Button btn1 = new Button("Login");
-	       btn1.setFont(new Font(21));
-	       HBox hbBtn1=new HBox();
-	       hbBtn1.setAlignment(Pos.BASELINE_RIGHT);
-	       hbBtn1.getChildren().add(btn1);//将按钮控件作为子节点
-	       
-	       grid.add(hbBtn2, 0, 4);//将HBox2 pane放到grid中的第0列，第4行
-           grid.add(hbBtn1, 1, 4);//将hbBtn1 pane 放到grid中的第1列，第4行
-	    		   
-	       final Text actiontarget=new Text();//增加用于显示信息的文本
-	       grid.add(actiontarget, 1, 6);
-	       scene=new Scene(grid,400,260);
-	       //login按钮
-	       btn1.setOnAction(new EventHandler<ActionEvent>() {//注册事件handler
-	           public void handle(ActionEvent e) {
-	        	   String inID= userTextField.getText();//用户输入的ID
-	        	   String inpassWord=pwBox.getText();//用户输入的密码
-					boolean[] isin;
-					try {
-						isin = ClientRunner.remoteHelper.getUserService().login(inID, inpassWord);
-						//System.out.println("sd");
-						if(isin[0]==false){
-							actiontarget.setFill(Color.FIREBRICK);//将文字颜色变成 red
-							actiontarget.setText("This account does not exit!");
-						}
-						if(isin[0]==true&&isin[1]==false){
-							actiontarget.setFill(Color.FIREBRICK);
-							actiontarget.setText("Password is not correct!");
-						}
-						if(isin[0]==true&&isin[1]==true){
-							try {
-								LoginUI.this.close();
-								mainUI.getAccount(inID);
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-						}
-					} catch (RemoteException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+		Text scenetitle = new Text("Welcome");
+		scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 35));
+		grid.add(scenetitle, 0, 0, 2, 1);
+		// 创建userName Label对象，放到第0列，第1行
+		Label userName = new Label("User Name:");
+		userName.setFont(new Font(20));
+		grid.add(userName, 0, 1);
+
+		// 创建文本输入框，放到第1列，第1行
+		TextField userTextField = new TextField();
+		userTextField.setPromptText("Enter your account");
+		grid.add(userTextField, 1, 1);
+
+		// 创建passWord Label对象，放在第0列，第2行
+		Label pw = new Label("Password:");
+		pw.setFont(new Font(20));
+		grid.add(pw, 0, 2);
+
+		// 创建passWordField
+		PasswordField pwBox = new PasswordField();
+		pwBox.setPromptText("Enter your passWord");
+		grid.add(pwBox, 1, 2);
+
+		// register 按钮
+		Button btn2 = new Button("register");
+		btn2.setFont(new Font(21));
+		HBox hbBtn2 = new HBox();
+		hbBtn2.setAlignment(Pos.BASELINE_LEFT);
+		hbBtn2.getChildren().add(btn2);// 将该按钮控件作为子节点
+		// login 按钮
+		Button btn1 = new Button("Login");
+		btn1.setFont(new Font(21));
+		HBox hbBtn1 = new HBox();
+		hbBtn1.setAlignment(Pos.BASELINE_RIGHT);
+		hbBtn1.getChildren().add(btn1);// 将按钮控件作为子节点
+
+		grid.add(hbBtn2, 0, 4);// 将HBox2 pane放到grid中的第0列，第4行
+		grid.add(hbBtn1, 1, 4);// 将hbBtn1 pane 放到grid中的第1列，第4行
+
+		final Text actiontarget = new Text();// 增加用于显示信息的文本
+		grid.add(actiontarget, 1, 6);
+		scene = new Scene(grid, 400, 260);
+		// login按钮
+		btn1.setOnAction(new EventHandler<ActionEvent>() {// 注册事件handler
+			public void handle(ActionEvent e) {
+				String inID = userTextField.getText();// 用户输入的ID
+				String inpassWord = pwBox.getText();// 用户输入的密码
+				boolean[] isin;
+				try {
+					isin = ClientRunner.remoteHelper.getUserService().login(inID, inpassWord);
+					// System.out.println("sd");
+					if (isin[0] == false) {
+						actiontarget.setFill(Color.FIREBRICK);// 将文字颜色变成 red
+						actiontarget.setText("This account does not exit!");
 					}
-			
-	           }
-	        });
-	       //register按钮
-	       btn2.setOnAction(new EventHandler<ActionEvent>() {
-			
+					if (isin[0] == true && isin[1] == false) {
+						actiontarget.setFill(Color.FIREBRICK);
+						actiontarget.setText("Password is not correct!");
+					}
+					if (isin[0] == true && isin[1] == true) {
+						try {
+							LoginUI.this.close();
+							mainUI.getAccount(inID);
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+			}
+		});
+		// register按钮
+		btn2.setOnAction(new EventHandler<ActionEvent>() {
+
 			@Override
 			public void handle(ActionEvent event) {
 				try {
 					LoginUI.this.close();
-				    RegisterUI registerUI=new RegisterUI();
-				    registerUI.show();
+					RegisterUI registerUI = new RegisterUI();
+					registerUI.show();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		});
-		   
+
 	}
 }
